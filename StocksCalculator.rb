@@ -18,16 +18,18 @@ class StocksCalculator
 	end
 	def refresh_price
 		sleep(5)
+		@stockpage = HTTParty.get("http://finance.yahoo.com/q?s=#{@stock_abbrev}")
 		@dom = Nokogiri::HTML(@stockpage.body)
 		@stockprice = @dom.xpath("//span[@id='yfs_l84_#{@stock_abbrev}']").first
 		difference = @stockprice.content.to_f - @max.to_f
-		if @stockprice.content > @max
-			puts "#{@stock_name}:" + " $#{@stockprice.content} ⇧ $#{difference}".colorize(:green)
-			@max = @stockprice.content
-		elsif @max < @stockprice.content
-			puts "#{@stock_name}:"+" $#{@stockprice.content} ⇩ $#{difference}".colorize(:red)
+		if @stockprice.content.to_f > @max.to_f
+			puts "#{@stock_name}:" + " $#{@stockprice.content} ⇧ $#{difference.round(2)}".colorize(:green)
+			@max = @stockprice.content.to_f
+		elsif @max.to_f > @stockprice.content.to_f
+			puts "#{@stock_name}:"+" $#{@stockprice.content} ⇩ $#{difference.round(2)}".colorize(:red)
+			@max = @stockprice.content.to_f
 		else
-			puts "#{@stock_name}:"+" $#{@stockprice.content} ↺ $#{difference}".colorize(:white)
+			puts "#{@stock_name}:"+" $#{@stockprice.content} ↺ $#{difference.round(2)}".colorize(:white)
 		end
 		refresh_price
 	end
